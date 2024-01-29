@@ -13,24 +13,6 @@ import { actionButtons } from './app.buttons';
 import { Context } from './context.interface';
 import { showlist } from './app.utils';
 
-const todos = [
-  {
-    id: 1,
-    name: 'buy something',
-    isCompleted: false,
-  },
-  {
-    id: 2,
-    name: 'go to gym',
-    isCompleted: false,
-  },
-  {
-    id: 3,
-    name: 'travel',
-    isCompleted: true,
-  },
-];
-
 @Update()
 export class AppUpdate {
   constructor(
@@ -46,6 +28,7 @@ export class AppUpdate {
 
   @Hears('🌻To do list')
   async taskList(ctx: Context) {
+    const todos = await this.appService.getAll();
     await ctx.reply(showlist(todos));
   }
 
@@ -77,35 +60,36 @@ export class AppUpdate {
     if (!ctx.session.type) return;
 
     if (ctx.session.type == 'done') {
-      const todo = todos.find((t) => t.id == Number(message));
-      if (!todo) {
+      const todos = await this.appService.doneTask(Number(message));
+
+      if (!todos) {
         await ctx.deleteMessage();
         await ctx.reply('Task with this ID doesnt exist');
         return;
       }
-      todo.isCompleted = !todo.isCompleted;
       await ctx.reply(showlist(todos));
     }
     if (ctx.session.type == 'edit') {
       const [taskId, taskName] = message.split(' | ');
-      const todo = todos.find((t) => t.id == Number(taskId));
-      if (!todo) {
+      const todos = await this.appService.editTask(Number(taskId), taskName);
+
+      if (!todos) {
         await ctx.deleteMessage();
         await ctx.reply('Task with this ID doesnt exist');
         return;
       }
-      todo.name = taskName;
       await ctx.reply(showlist(todos));
     }
     if (ctx.session.type == 'remove') {
-      const todo = todos.find((t) => t.id == Number(message));
-      if (!todo) {
+      const todos = await this.appService.deleteTask(Number(message));
+
+      if (!todos) {
         await ctx.deleteMessage();
         await ctx.reply('Task with this ID doesnt exist');
         return;
       }
 
-      await ctx.reply(showlist(todos.filter((t) => t.id != Number(message))));
+      await ctx.reply(showlist(todos));
     }
   }
 }
