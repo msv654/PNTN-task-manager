@@ -17,6 +17,13 @@ export class AppService {
     return this.taskRepository.findOneBy({ id });
   }
 
+  async createTask(name: string) {
+    const task = await this.taskRepository.create({ name });
+
+    await this.taskRepository.save(task);
+    return this.getAll();
+  }
+
   async doneTask(id: number) {
     const task = await this.getById(id);
     if (!task) return null;

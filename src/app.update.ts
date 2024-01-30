@@ -32,6 +32,12 @@ export class AppUpdate {
     await ctx.reply(showlist(todos));
   }
 
+  @Hears('🍯Create task')
+  async createList(ctx: Context) {
+    ctx.session.type = 'create';
+    await ctx.reply('Describe the task');
+  }
+
   @Hears('✅Task completed')
   async doneList(ctx: Context) {
     ctx.session.type = 'done';
@@ -58,6 +64,11 @@ export class AppUpdate {
   @On('text')
   async getMessage(@Message('text') message: string, @Ctx() ctx: Context) {
     if (!ctx.session.type) return;
+
+    if (ctx.session.type == 'create') {
+      const todos = await this.appService.createTask(message);
+      await ctx.reply(showlist(todos));
+    }
 
     if (ctx.session.type == 'done') {
       const todos = await this.appService.doneTask(Number(message));
